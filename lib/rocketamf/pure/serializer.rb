@@ -2,6 +2,15 @@ require 'rocketamf/pure/io_helpers'
 
 module RocketAMF
   module Pure
+    class EncodedStream < String
+      def << str
+        # Rails.logger.info("stream #{encoding}")
+        # Rails.logger.info(">> write_utf8_vr #{str.to_s} #{str.to_s.encoding}")
+        super(str)
+        # Rails.logger.info("stream #{encoding}")
+        # Rails.logger.info("---------------------------------------")  
+      end
+    end
     # AMF0 implementation of serializer
     class Serializer
       def initialize
@@ -140,7 +149,7 @@ module RocketAMF
         3
       end
 
-      def serialize obj, stream = ""
+      def serialize obj, stream = EncodedStream.new.encode("UTF-8")
         if obj.respond_to?(:to_amf)
           stream << obj.to_amf(self)
         elsif obj.is_a?(NilClass)
@@ -292,10 +301,10 @@ module RocketAMF
           @string_cache.add_obj str
 
           # Build AMF string
-          header = str.length << 1 # make room for a low bit of 1
+          header = str.bytesize << 1 # make room for a low bit of 1
           header = header | 1 # set the low bit to 1
           stream << pack_integer(header)
-          stream << str
+          stream << str.encode("UTF-8")
         end
       end
     end

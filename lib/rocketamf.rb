@@ -98,7 +98,10 @@ module RocketAMF
     if amf_version == 0
       RocketAMF::Serializer.new.serialize(obj)
     elsif amf_version == 3
-      RocketAMF::AMF3Serializer.new.serialize(obj)
+      # Rails.logger.info "Serializing #{obj}"
+      out = RocketAMF::AMF3Serializer.new.serialize(obj)
+      # Rails.logger.info("Serialized #{obj}")
+      out
     else
       raise AMFError, "unsupported version #{amf_version}"
     end

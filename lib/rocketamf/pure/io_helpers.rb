@@ -43,7 +43,7 @@ module RocketAMF
     module WriteIOHelpers #:nodoc:
       def pack_integer(integer)
         integer = integer & 0x1fffffff
-        if(integer < 0x80)
+        packed = if(integer < 0x80)
           [integer].pack('c')
         elsif(integer < 0x4000)
           [integer >> 7 & 0x7f | 0x80].pack('c')+
@@ -58,10 +58,12 @@ module RocketAMF
           [integer >> 8 & 0x7f | 0x80].pack('c')+
           [integer & 0xff].pack('c')
         end
+        
+        packed.force_encoding("UTF-8")
       end
 
       def pack_double(double)
-        [double].pack('G')
+        [double].pack('G').force_encoding("UTF-8")
       end
 
       def pack_int8(val)

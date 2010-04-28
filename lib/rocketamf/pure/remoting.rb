@@ -50,7 +50,7 @@ module RocketAMF
     # RocketAMF::Response for deserializing the given stream.
     module Response
       def serialize
-        stream = ""
+        stream = "".encode("UTF-8")
 
         # Write version
         stream << pack_int16_network(@amf_version)
@@ -68,17 +68,21 @@ module RocketAMF
         # Write messages
         stream << pack_int16_network(@messages.length) # Message count
         @messages.each do |m|
-          stream << pack_int16_network(m.target_uri.length)
+          # Rails.logger.info("Packing message")
+          stream << pack_int16_network(m.target_uri.length).force_encoding("UTF-8")
           stream << m.target_uri
 
           stream << pack_int16_network(m.response_uri.length)
           stream << m.response_uri
 
-          stream << pack_word32_network(-1)
+          stream << pack_word32_network(-1).force_encoding("UTF-8")
           stream << AMF0_AMF3_MARKER if @amf_version == 3
+          stream.encode("UTF-8")
+          # Rails.logger.info("stream #{stream.encoding} serialized #{RocketAMF.serialize(m.data, @amf_version).encoding}")
           stream << RocketAMF.serialize(m.data, @amf_version)
+          # Rails.logger.info("Packed message #{m}")
+          # Rails.logger.info("-"*20)
         end
-
         stream
       end
 
