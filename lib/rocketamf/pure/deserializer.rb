@@ -43,6 +43,9 @@ module RocketAMF
         when AMF0_TYPED_OBJECT_MARKER
           read_typed_object source
         when AMF0_AMF3_MARKER
+          # # Rails.logger.info("Loading AMF3Deserializer")
+          # caller.grep(/rocket-amf/).each{|line|# Rails.logger.info(" "*20+line)}
+          
           AMF3Deserializer.new.deserialize(source)
         else
           raise AMFError, "Invalid type: #{type}"
@@ -142,6 +145,7 @@ module RocketAMF
         # Create object to add to ref cache
         class_name = read_string source
         obj = RocketAMF::ClassMapper.get_ruby_obj class_name
+        # Rails.logger.info("read_typed_object source: #{source} class_name: #{class_name}, obj: #{obj.inspect}")
         @ref_cache << obj
 
         # Read object props
@@ -192,6 +196,13 @@ module RocketAMF
           #read_amf3_xml
         when AMF3_BYTE_ARRAY_MARKER
           read_amf3_byte_array source
+        when AMF3_DICT_MARKER
+          # AMF3 has a type for Dicts. This is _NOT_ found in the official documentation
+          # as of May 6, 2010.
+          # References
+          # StackOverflow: http://stackoverflow.com/questions/1731946/does-flash-player-10-use-a-new-unreleased-amf-specification
+          # Python impl: http://dev.pyamf.org/ticket/696
+          read_dict source
         else
           raise AMFError, "Invalid type: #{type}"
         end
@@ -237,8 +248,10 @@ module RocketAMF
         type = read_integer source
         isReference = (type & 0x01) == 0
 
+        # puts("read_string is : " + (isReference ? "a ref" : "not a ref"))
         if isReference
           reference = type >> 1
+          # puts("read_string reference: #{reference}; string_cache: #{@string_cache}")
           return @string_cache[reference]
         else
           length = type >> 1
@@ -247,6 +260,7 @@ module RocketAMF
             str = source.read(length)
             @string_cache << str
           end
+          # puts("read_string str: #{str}; string_cache: #{@string_cache}")
           return str
         end
       end
@@ -267,6 +281,7 @@ module RocketAMF
       end
 
       def read_array source
+        
         type = read_integer source
         isReference = (type & 0x01) == 0
 
@@ -276,6 +291,8 @@ module RocketAMF
         else
           length = type >> 1
           propertyName = read_string source
+          # Rails.logger.info("propertyName in read_array: #{propertyName}")
+          
           if propertyName != ""
             array = {}
             @object_cache << array
@@ -307,8 +324,11 @@ module RocketAMF
 
         if isReference
           reference = type >> 1
+          # Rails.logger.info("object_cache in read_object: #{@object_cache.inspect}")
+          
           return @object_cache[reference]
         else
+          # Rails.logger.info("ain't no reference in read_object (type=#{type})")
           class_type = type >> 1
           class_is_reference = (class_type & 0x01) == 0
 
@@ -322,8 +342,10 @@ module RocketAMF
             attribute_count = class_type >> 3
 
             class_attributes = []
+            # Rails.logger.info("read_object class_name: #{class_name} externalizable: #{externalizable} dynamic: #{dynamic} attr_count: #{attribute_count}")
             attribute_count.times{class_attributes << read_string(source)} # Read class members
 
+            # Rails.logger.info("read_object class_attributes: #{class_attributes.inspect}")
             class_definition = {"class_name" => class_name,
                                 "members" => class_attributes,
                                 "externalizable" => externalizable,
@@ -332,6 +354,7 @@ module RocketAMF
           end
 
           obj = RocketAMF::ClassMapper.get_ruby_obj class_definition["class_name"]
+          # Rails.logger.info("read_object mapped_class: #{obj.inspect}")
           @object_cache << obj
 
           if class_definition['externalizable']
@@ -339,23 +362,64 @@ module RocketAMF
           else
             props = {}
             class_definition['members'].each do |key|
+              # Rails.logger.info("read_object deserializing member: #{key}")
+              # Rails.logger.info("read_object source pos: #{source.pos}")
               value = deserialize(source)
               props[key.to_sym] = value
+              # Rails.logger.info("read_object deserialized member: #{key} as #{value.inspect}")
             end
-
+            # Rails.logger.info("read_object deserialized member: 365")
             dynamic_props = nil
             if class_definition['dynamic']
               dynamic_props = {}
-              while (key = read_string source) && key.length != 0  do # read next key
+              while (key = read_string_source source) && key.length != 0  do # read next key
+                # Rails.logger.info("read_object before deserialize key=#{key}")
                 value = deserialize(source)
+                # break if key == 'dict'
+                # Rails.logger.info("read_object after deserialize key=#{key}; value=#{value}")
                 dynamic_props[key.to_sym] = value
               end
+              # Rails.logger.info("read_object dynamic object past while loop")
+              
             end
-
+            # Rails.logger.info("read_object at line 374")
             RocketAMF::ClassMapper.populate_ruby_obj obj, props, dynamic_props
+            # Rails.logger.info("read_object at line 376")
           end
+          # Rails.logger.info("read_object object: #{obj.inspect}")          
           obj
         end
+      end
+      
+      def read_string_source source 
+        # Rails.logger.info("read_string_source started #{source}")
+        output = read_string source
+        # Rails.logger.info("read_string_source output #{output}")
+        
+        return output
+      end
+
+      def read_dict source
+        # puts("read_dict enter pos: #{source.pos}")
+        type = read_integer source
+        isReference = (type & 0x01) == 0
+        # puts("read_dict type: #{type.inspect} is_ref: #{isReference}")
+        return @object_cache[type >> 1] if isReference
+        @object_cache << (dict = {})
+        
+        # puts("read_dict dict_size: #{type >> 1}")
+        
+        # TODO: Why are we skipping this and what does it mean?
+        
+        skip = read_integer source
+        (type >> 1).times do
+          key = deserialize(source)
+          value = deserialize(source)
+          # puts "read_dict key: #{key.inspect} value: #{value.inspect}"
+          dict[key] =  value
+        end
+        
+        dict
       end
 
       def read_date source

@@ -1,3 +1,4 @@
+# encoding: UTF-8
 require File.dirname(__FILE__) + '/../spec_helper.rb'
 
 describe "when deserializing" do
@@ -169,6 +170,18 @@ describe "when deserializing" do
 
       #BAH! Who sends XML over AMF?
       it "should deserialize XML"
+      
+      it "should deserialize an empty dict" do
+        input = object_fixture("amf3-emptyDict")
+        output = RocketAMF.deserialize(input, 3)
+        output.should == {}
+      end
+      
+      it "should deserialize a dict with data" do
+        input = object_fixture("amf3-dictWithData")
+        output = RocketAMF.deserialize(input, 3)
+        output.should == {"bool" => true, "key" => "value", "test" => "test"}
+      end
     end
 
     describe "objects" do

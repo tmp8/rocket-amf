@@ -3,3 +3,5 @@ pkg/*
 .project
 /rdoc/
 *.gemspec
+.DS_Store
+.bundle

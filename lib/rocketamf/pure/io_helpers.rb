@@ -2,11 +2,38 @@ module RocketAMF
   module Pure
     module ReadIOHelpers #:nodoc:
       def read_int8 source
-        source.read(1).unpack('c').first
+        # Rails.logger.info("read_int8 before read pos: #{source.pos}")
+        read1 = source.read(1)
+
+        unpacked = read1.unpack('c')
+        
+        # Rails.logger.info("read_int8 source:   #{source}")
+        # Rails.logger.info("read_int8 read1:    #{read1.inspect}")
+        # Rails.logger.info("read_int8 unpacked: #{unpacked.inspect}")
+        # Rails.logger.info("read_int8 after read pos: #{source.pos}")
+        # Rails.logger.info("-----------------------------------------------")
+        # Rails.logger.info("read_int8 trace:")
+        # caller.grep(/rocket-amf/).each{|line|# Rails.logger.info(" "*20+line)}
+
+        unpacked.first
       end
 
       def read_word8 source
-        source.read(1).unpack('C').first
+        # source.read(1).unpack('C').first        
+        # Rails.logger.info("read_word8 before read pos: #{source.pos}")
+        read1 = source.read(1)
+
+        unpacked = read1.unpack('C')
+        
+        # Rails.logger.info("read_word8 source:   #{source}")
+        # Rails.logger.info("read_word8 read1:    #{read1.inspect}")
+        # Rails.logger.info("read_word8 unpacked: #{unpacked.inspect}")
+        # Rails.logger.info("read_word8 after read pos: #{source.pos}")
+        # Rails.logger.info("-----------------------------------------------")
+        # Rails.logger.info("read_word8 trace:")
+        # caller.grep(/rocket-amf/).each{|line|# Rails.logger.info(" "*20+line)}
+
+        unpacked.first
       end
 
       def read_double source

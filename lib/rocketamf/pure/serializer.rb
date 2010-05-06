@@ -4,11 +4,11 @@ module RocketAMF
   module Pure
     class EncodedStream < String
       def << str
-        # Rails.logger.info("stream #{encoding}")
-        # Rails.logger.info(">> write_utf8_vr #{str.to_s} #{str.to_s.encoding}")
+        # # Rails.logger.info("stream #{encoding}")
+        # # Rails.logger.info(">> write_utf8_vr #{str.to_s} #{str.to_s.encoding}")
         super(str)
-        # Rails.logger.info("stream #{encoding}")
-        # Rails.logger.info("---------------------------------------")  
+        # # Rails.logger.info("stream #{encoding}")
+        # # Rails.logger.info("---------------------------------------")  
       end
     end
     # AMF0 implementation of serializer
@@ -304,7 +304,16 @@ module RocketAMF
           header = str.bytesize << 1 # make room for a low bit of 1
           header = header | 1 # set the low bit to 1
           stream << pack_integer(header)
-          stream << str.encode("UTF-8")
+          # raise stream.encoding.inspect
+          
+          # Ruby by default treats all strings as ascii-8. 
+          # The AMF stream is sending us UTF-8. 
+          # But we should be able to force_encoding to UTF-8.
+          # The problem is that this results in a 
+          #    "can't force encoding of frozen object"
+          # Hence the dup. But we still don't know why str is frozen
+          # TODO: Determine why str is frozen.
+          stream << str.dup.force_encoding("UTF-8")
         end
       end
     end

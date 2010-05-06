@@ -68,7 +68,7 @@ module RocketAMF
         # Write messages
         stream << pack_int16_network(@messages.length) # Message count
         @messages.each do |m|
-          # Rails.logger.info("Packing message")
+          # # Rails.logger.info("Packing message")
           stream << pack_int16_network(m.target_uri.length).force_encoding("UTF-8")
           stream << m.target_uri
 
@@ -78,10 +78,10 @@ module RocketAMF
           stream << pack_word32_network(-1).force_encoding("UTF-8")
           stream << AMF0_AMF3_MARKER if @amf_version == 3
           stream.encode("UTF-8")
-          # Rails.logger.info("stream #{stream.encoding} serialized #{RocketAMF.serialize(m.data, @amf_version).encoding}")
+          # # Rails.logger.info("stream #{stream.encoding} serialized #{RocketAMF.serialize(m.data, @amf_version).encoding}")
           stream << RocketAMF.serialize(m.data, @amf_version)
-          # Rails.logger.info("Packed message #{m}")
-          # Rails.logger.info("-"*20)
+          # # Rails.logger.info("Packed message #{m}")
+          # # Rails.logger.info("-"*20)
         end
         stream
       end
