@@ -405,7 +405,7 @@ module RocketAMF
         isReference = (type & 0x01) == 0
         # puts("read_dict type: #{type.inspect} is_ref: #{isReference}")
         return @object_cache[type >> 1] if isReference
-        @object_cache << (dict = {})
+        @object_cache << (dict = Flash::Utils::Dictionary.new)
         
         # puts("read_dict dict_size: #{type >> 1}")
         

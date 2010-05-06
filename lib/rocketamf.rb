@@ -5,6 +5,7 @@ require 'rocketamf/version'
 require 'rocketamf/class_mapping'
 require 'rocketamf/constants'
 require 'rocketamf/remoting'
+require 'flash/utils/dictionary'
 
 # RocketAMF is a full featured AMF0/3 serializer and deserializer with support
 # for Flash -> Ruby and Ruby -> Flash class mapping, custom serializers,

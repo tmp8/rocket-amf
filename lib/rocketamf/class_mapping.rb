@@ -87,6 +87,7 @@ module RocketAMF
         map :as => 'flex.messaging.messages.AcknowledgeMessage', :ruby => 'RocketAMF::Values::AcknowledgeMessage'
         map :as => 'flex.messaging.messages.ErrorMessage', :ruby => 'RocketAMF::Values::ErrorMessage'
         map :as => 'flex.messaging.io.ArrayCollection', :ruby => 'RocketAMF::Values::ArrayCollection'
+        map :as => 'flash.utils.Dictionary', :ruby => 'Flash::Utils::Dictionary'
       end
 
       # Map a given AS class to a ruby class.
