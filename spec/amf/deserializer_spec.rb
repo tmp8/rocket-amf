@@ -182,6 +182,18 @@ describe "when deserializing" do
         output = RocketAMF.deserialize(input, 3)
         output.should == {"bool" => true, "key" => "value", "test" => "test"}
       end
+      
+      it "should log when encountering and unexpected 'skip byte'" do
+        # raise "HELL"
+        require "fileutils"
+        require "pathname"
+        FileUtils.rm_rf("log/amf")
+        input = object_fixture("amf3-dictWithUnexpectedSkipByte")
+        output = RocketAMF.deserialize(input, 3)
+        Pathname.new("log/amf_unexpected_skip_byte.log").should be_file
+        Pathname.glob("log/amf/*.bin").length.should == 1
+        puts Pathname.glob("log/amf/*.bin").inspect
+      end
     end
 
     describe "objects" do

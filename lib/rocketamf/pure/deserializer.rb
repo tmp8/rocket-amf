@@ -412,6 +412,8 @@ module RocketAMF
         # TODO: Why are we skipping this and what does it mean?
         
         skip = read_integer source
+        log_unexpected_skip_value(skip, source) unless skip == 0
+        
         (type >> 1).times do
           key = deserialize(source)
           value = deserialize(source)
@@ -420,6 +422,29 @@ module RocketAMF
         end
         
         dict
+      end
+
+      def log_unexpected_skip_value(skip, source)
+      # bookmark the StringIO and rewind
+        bookmark = source.pos
+        source.rewind
+
+        require 'logger'
+        require 'fileutils'
+      
+      # prepare the logger and a record the raw source to a file
+        filename = "log/amf/#{(0..10).map{rand(10)}.join}.bin"
+        ::FileUtils.mkdir_p("log/amf")
+        ::File.open(filename, "w+") {|file| file.write source.read }
+      
+      # logging the information
+        skip_logger = Logger.new("log/amf_unexpected_skip_byte.log")
+        skip_logger.debug("Encountered unexpectd skip value; expected 0, but encountered #{skip.inspect}")
+        skip_logger.debug("Full binary source logged to file #{filename}")
+      ensure
+      # ensure the IO gets back to the bookmark
+        source.rewind
+        source.read(bookmark)
       end
 
       def read_date source
