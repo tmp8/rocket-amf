@@ -9,7 +9,7 @@ desc 'Default: run the specs.'
 task :default => :spec
 
 Spec::Rake::SpecTask.new do |t|
-  t.spec_opts = ['--options', 'spec/spec.opts']
+  t.spec_opts = ['--options', 'spec/.rspec']
 end
 
 desc 'Generate documentation for the RocketAMF plugin.'
@@ -26,7 +26,7 @@ spec = Gem::Specification.new do |s|
   s.version = '0.0.7'
   s.summary = 'Fast AMF serializer/deserializer and request/response wrappers to simplify remoting implementation'
 
-  s.files        = FileList['README.rdoc', 'Rakefile', 'lib/**/*.rb', 'spec/**/*.rb', 'spec/**/*.bin', 'spec/spec.opts']
+  s.files        = FileList['README.rdoc', 'Rakefile', 'lib/**/*.rb', 'spec/**/*.rb', 'spec/**/*.bin', 'spec/.rspec']
   s.require_path = 'lib'
   s.test_files   = Dir[*['spec/**/*_spec.rb']]
 
