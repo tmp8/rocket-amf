@@ -3,12 +3,9 @@ require 'rocketamf/pure/io_helpers'
 module RocketAMF
   module Pure
     class EncodedStream < String
-      def << str
-        # # Rails.logger.info("stream #{encoding}")
-        # # Rails.logger.info(">> write_utf8_vr #{str.to_s} #{str.to_s.encoding}")
-        super(str)
-        # # Rails.logger.info("stream #{encoding}")
-        # # Rails.logger.info("---------------------------------------")  
+      def initialize(*)
+        super
+        encode("UTF-8") if respond_to?(:encode)
       end
     end
     # AMF0 implementation of serializer
@@ -149,7 +146,7 @@ module RocketAMF
         3
       end
 
-      def serialize obj, stream = EncodedStream.new.encode("UTF-8")
+      def serialize obj, stream = EncodedStream.new
         if obj.respond_to?(:to_amf)
           stream << obj.to_amf(self)
         elsif obj.is_a?(NilClass)
@@ -313,7 +310,8 @@ module RocketAMF
           #    "can't force encoding of frozen object"
           # Hence the dup. But we still don't know why str is frozen
           # TODO: Determine why str is frozen.
-          stream << str.dup.force_encoding("UTF-8")
+          str = str.dup.force_encoding("UTF-8") if str.respond_to?("force_encoding")
+          stream << str
         end
       end
     end

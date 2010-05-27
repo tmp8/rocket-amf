@@ -50,7 +50,8 @@ module RocketAMF
     # RocketAMF::Response for deserializing the given stream.
     module Response
       def serialize
-        stream = "".encode("UTF-8")
+        stream = ""
+        stream.encode("UTF-8") if stream.respond_to?(:encode)
 
         # Write version
         stream << pack_int16_network(@amf_version)
@@ -69,15 +70,22 @@ module RocketAMF
         stream << pack_int16_network(@messages.length) # Message count
         @messages.each do |m|
           # # Rails.logger.info("Packing message")
-          stream << pack_int16_network(m.target_uri.length).force_encoding("UTF-8")
+          packed_target_uri = pack_int16_network(m.target_uri.length)
+          packed_target_uri.force_encoding("UTF-8") if packed_target_uri.respond_to?(:force_encoding)
+          
+          stream << packed_target_uri
           stream << m.target_uri
 
-          stream << pack_int16_network(m.response_uri.length)
+          response_uri_length = pack_int16_network(m.response_uri.length)
+          response_uri_length.force_encoding("UTF-8") if packed_target_uri.respond_to?(:force_encoding)
+          stream << response_uri_length
           stream << m.response_uri
 
-          stream << pack_word32_network(-1).force_encoding("UTF-8")
+          packed_neg_one = pack_word32_network(-1)
+          packed_neg_one.force_encoding("UTF-8") if packed_neg_one.respond_to?(:force_encoding)
+          stream << packed_neg_one
           stream << AMF0_AMF3_MARKER if @amf_version == 3
-          stream.encode("UTF-8")
+          stream.encode("UTF-8") if stream.respond_to?(:encode)
           # # Rails.logger.info("stream #{stream.encoding} serialized #{RocketAMF.serialize(m.data, @amf_version).encoding}")
           stream << RocketAMF.serialize(m.data, @amf_version)
           # # Rails.logger.info("Packed message #{m}")

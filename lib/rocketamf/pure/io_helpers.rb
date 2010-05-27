@@ -86,11 +86,15 @@ module RocketAMF
           [integer & 0xff].pack('c')
         end
         
-        packed.force_encoding("UTF-8")
+        
+        packed.force_encoding("UTF-8") if packed.respond_to?(:force_encoding)
+        packed
       end
 
       def pack_double(double)
-        [double].pack('G').force_encoding("UTF-8")
+        packed = [double].pack('G')
+        packed.force_encoding("UTF-8") if packed.respond_to?(:force_encoding)
+        packed
       end
 
       def pack_int8(val)
