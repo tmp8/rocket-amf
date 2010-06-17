@@ -66,7 +66,8 @@ module RocketAMF
 
       def read_string source, long=false
         len = long ? read_word32_network(source) : read_word16_network(source)
-        source.read(len)
+        str = source.read(len)
+        str.force_encoding("UTF-8") if str.respond_to?(:force_encoding)
       end
 
       def read_object source, add_to_ref_cache=true
@@ -258,6 +259,7 @@ module RocketAMF
           str = ""
           if length > 0
             str = source.read(length)
+            str.force_encoding("UTF-8") if str.respond_to?(:force_encoding)
             @string_cache << str
           end
           # puts("read_string str: #{str}; string_cache: #{@string_cache}")
